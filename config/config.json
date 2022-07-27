@@ -1,0 +1,26 @@
+{
+  "development": {
+    "username": "phpmyadmin",
+    "password": "pass",
+    "database": "movies_development",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "test": {
+    "username": "phpmyadmin",
+    "password": "pass",
+    "database": "movies_test",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "use_env_variable": "DATABASE_URL",
+    "database": "movies_production",
+    "dialect": "mysql",
+    "dialectOptions": {
+      "ssl": {
+        "rejectUnauthorized": false
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 exports.sendErrorResponse = (res, code, errorMessage, e = null) => {
-    console.error(e)
-    return res.status(code).send({
+    const statusCode = e && e.name === 'ValidationError' ? 400 : code
+    return res.status(statusCode).send({
         status: 'error',
         error: errorMessage,
         e: e?.toString(),

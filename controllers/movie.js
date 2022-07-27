@@ -1,13 +1,27 @@
 const db = require("../models");
+const yup = require("yup")
 const { sendSuccessResponse, sendErrorResponse } = require('../utils/sendResponse');
 const { Movie, User } = db;
 const Op = db.Sequelize.Op;
 
-const findOne = (req, res) => {
-    const { id } = req.params;
-    Movie.findByPk(id)
-        .then(data => data ? sendSuccessResponse(res, 200, data) : sendErrorResponse(res, 404, "Not Found"))
-        .catch(err => sendErrorResponse(res, 500, "Error retrieving movie"));
+const movieValidationSchema = yup.object().shape({
+    title: yup.string().required(),
+    rating: yup.number().positive().integer(),
+    userId: yup.number().required(),
+});
+
+const findOne = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const data = await Movie.findByPk(id)
+        if (data) {
+            return sendSuccessResponse(res, 200, data)
+        }
+        sendErrorResponse(res, 404, "Not Found")
+    } catch (error) {
+        sendErrorResponse(res, 500, "Error retrieving movie")
+    }
+
 };
 
 const findAll = async (req, res) => {
@@ -29,20 +43,20 @@ const findAll = async (req, res) => {
 
 };
 
-const create = (req, res) => {
-    const { title, rating, userId } = req.body
-    if (!title || !userId) {
-        sendErrorResponse(res, 400, `Title & user id is required${userId} ${title}`)
-        return;
+const create = async (req, res) => {
+    try {
+        const { title, rating, userId } = req.body
+        await movieValidationSchema.validate({ title, rating, userId })
+        const movie = {
+            title,
+            rating,
+            userId
+        };
+        const data = await Movie.create(movie)
+        sendSuccessResponse(res, 201, data)
+    } catch (error) {
+        sendErrorResponse(res, 500, error.message || "Error creating movie", error)
     }
-    const movie = {
-        title,
-        rating,
-        userId
-    };
-    Movie.create(movie)
-        .then(data => sendSuccessResponse(res, 201, data))
-        .catch(err => sendErrorResponse(res, 500, "Error creating movie"));
 };
 
 const update = (req, res) => {
@@ -73,5 +87,6 @@ module.exports = {
     findAll,
     create,
     update,
-    deleteOne
+    deleteOne,
+    movieValidationSchema
 }
