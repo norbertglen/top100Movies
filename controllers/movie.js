@@ -52,8 +52,13 @@ const create = async (req, res) => {
             rating,
             userId
         };
-        const data = await Movie.create(movie)
-        sendSuccessResponse(res, 201, data)
+        const currentCount = await Movie.count({ where: { userId } })
+        if (currentCount < 100) {
+            const data = await Movie.create(movie)
+            return sendSuccessResponse(res, 201, data)
+        }
+        sendErrorResponse(res, 400, 'You cannot add more than 100 movies')
+
     } catch (error) {
         sendErrorResponse(res, 500, error.message || "Error creating movie", error)
     }
@@ -88,5 +93,4 @@ module.exports = {
     create,
     update,
     deleteOne,
-    movieValidationSchema
 }
