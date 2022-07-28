@@ -6,8 +6,13 @@ const Op = db.Sequelize.Op;
 
 const movieValidationSchema = yup.object().shape({
     title: yup.string().required(),
-    rating: yup.number().positive().integer(),
+    rating: yup.number().positive().integer().min(1).max(5),
     userId: yup.number().required(),
+});
+
+const movieUpdateSchema = yup.object().shape({
+    title: yup.string(),
+    rating: yup.number().positive().integer().min(1).max(5),
 });
 
 const findOne = async (req, res) => {
@@ -64,18 +69,27 @@ const create = async (req, res) => {
     }
 };
 
-const update = (req, res) => {
-    const { id } = req.params;
-    const { title, rating } = req.body
-    const updates = {
-        ...(title && { title }),
-        ...(rating && { rating }),
+const update = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, rating } = req.body
+        const updates = {
+            ...(title && { title }),
+            ...(rating && { rating }),
+        }
+        await movieUpdateSchema.validate(updates)
+        const num = await Movie.update(updates, {
+            where: { id }
+        })
+        if (num == 1) {
+            sendSuccessResponse(res, 204)
+        } else {
+            sendErrorResponse(res, 400, "Cannot update movie")
+        }
+    } catch (error) {
+        sendErrorResponse(res, 500, error.message || "Error updating movie", error)
     }
-    Movie.update(updates, {
-        where: { id }
-    })
-        .then(num => num == 1 ? sendSuccessResponse(res, 204) : sendErrorResponse(res, 400, "Cannot update movie"))
-        .catch(err => sendErrorResponse(res, 500, "Error updating movie"));
+
 };
 
 const deleteOne = (req, res) => {
