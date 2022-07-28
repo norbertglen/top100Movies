@@ -11,6 +11,8 @@ module.exports = (sequelize, DataTypes) => {
       }
     }
   }, {});
+  
+  // Relationships
   Movie.associate = function (models) {
     Movie.belongsTo(models.User, {
       foreignKey: "userId",
